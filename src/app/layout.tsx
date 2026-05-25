@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script"; // 🔥 YEH LINE ZAROORI HAI 🔥
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,19 +16,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* 🤖 Monetag Bot Bypass - Direct Inline Script */}
+        <script 
+          dangerouslySetInnerHTML={{ 
+            __html: `(function(s){s.dataset.zone='11057030',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))` 
+          }} 
+        />
+      </head>
       <body className="antialiased bg-[#0a0a0a] text-white min-h-screen">
         
         {/* Teri Website Ka Asli Content */}
         {children}
-        
-        {/* 💰 SENIOR DEVELOPER HACK: Monetag Popunder Engine 💰 */}
-        <Script 
-          id="monetag-popunder"
-          strategy="afterInteractive" 
-          src="https://al5sm.com/tag.min.js"
-          data-zone="11057030"
-        />
-        
+        git add .
       </body>
     </html>
   );
