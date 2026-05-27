@@ -25,8 +25,9 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased bg-[#0a0a0a] text-white min-h-screen">
+        
         {/* 🎮 Ecosystem Banner - YT Downloader */}
-        <div className="w-full bg-black/60 backdrop-blur-lg border-b border-green-500/20 backdrop-blur-md z-50 relative">
+        <div className="w-full bg-black/60 backdrop-blur-lg border-b border-green-500/20 z-50 relative">
           <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-center gap-3">
             {/* Live Pulsing Dot */}
             <span className="relative flex h-2.5 w-2.5">
@@ -36,7 +37,8 @@ export default function RootLayout({
             <p className="text-xs sm:text-sm font-medium text-green-100 flex flex-wrap items-center justify-center gap-1.5">
               PC Lagging in Free Fire? 
               <a 
-                href="TERA_LOW_PC_OPTIMIZER_LINK_YAHAN_AAYEGA" 
+                // YAHAN APNA ASLI OPTIMIZER KA LINK DAAL (https:// ke sath)
+                href="https://low-end-pc-optimizer.vercel.app/" 
                 target="_blank" 
                 rel="noreferrer"
                 className="text-green-400 hover:text-green-300 underline underline-offset-4 transition-colors font-bold flex items-center gap-1"
@@ -46,9 +48,10 @@ export default function RootLayout({
             </p>
           </div>
         </div>
+
         {/* Teri Website Ka Asli Content */}
         {children}
-        git add .
+        
       </body>
     </html>
   );
