@@ -10,7 +10,7 @@ export default function Home() {
   const [videoData, setVideoData] = useState<any>(null);
   const [error, setError] = useState('');
 
-  // Yeh function metadata (thumbnail/title) laane ke liye hai
+  // 🧠 API Fetching Logic (Updated for Railway + RapidAPI)
   const handleExtract = async () => {
     if (!url) return;
     setIsLoading(true);
@@ -18,19 +18,16 @@ export default function Home() {
     setVideoData(null);
 
     try {
-      const res = await fetch('/api/extract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
-      });
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yt-downloader-backend-production-195b.up.railway.app';
       
+      const res = await fetch(`${backendUrl}/api/extract?url=${encodeURIComponent(url)}`);
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Oops! Kuch masla ho gaya. Link check karo.');
+      if (data.error || data.message) {
+        throw new Error(data.error || data.message || 'Oops! Kuch masla ho gaya. Link check karo.');
       }
 
-      console.log("X-RAY VISION - API KA ASLI DATA:", data);
+      console.log("🔥 RAPIDAPI KA ASLI DATA:", data);
       setVideoData(data);
     } catch (err: any) {
       setError(err.message);
@@ -38,19 +35,6 @@ export default function Home() {
       setIsLoading(false);
     }
   };
-
-// 🔥 THE ULTIMATE FIX 🔥
-const handlePremiumDownload = () => {
-  if (!url) {
-    setError("Please paste a link first!");
-    return;
-  }
-  
-  // Agar env variable nahi mila, toh direct Railway link uthayega (localhost ka masla hi khatam!)
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yt-downloader-backend-production-195b.up.railway.app';
-  
-  window.location.href = `${backendUrl}/api/download?url=${encodeURIComponent(url)}`;
-};
 
   return (
     <main className="relative min-h-screen w-full overflow-y-auto bg-[#0a0a0a] text-white flex flex-col items-center p-4 py-20">
@@ -117,8 +101,8 @@ const handlePremiumDownload = () => {
               className="w-full mt-8 p-6 bg-white/5 border border-white/10 backdrop-blur-2xl rounded-3xl text-left flex flex-col md:flex-row gap-6 shadow-2xl"
             >
               <div className="w-full md:w-1/2 rounded-2xl overflow-hidden border border-white/10 shadow-lg relative group">
-                <img src={videoData.id ? `https://i.ytimg.com/vi/${videoData.id}/maxresdefault.jpg` : 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=1000'} 
-                     onError={(e) => { (e.target as HTMLImageElement).src = `https://i.ytimg.com/vi/${videoData.id}/hqdefault.jpg`; }}
+                {/* Dynamically pulling thumbnail from RapidAPI */}
+                <img src={videoData.picture || videoData.thumbnail || 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=1000'} 
                      alt="Video Thumbnail" 
                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" 
                 />
@@ -131,49 +115,55 @@ const handlePremiumDownload = () => {
                 
                 <div className="w-full mt-6 space-y-5">
                   
-                  {/* 🔥 NEW: PRO BACKEND MERGE BUTTON 🔥 */}
-                  <div>
-                    <h4 className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 text-xs font-bold mb-2 uppercase tracking-widest pl-1 flex items-center gap-1">
-                      <Zap className="w-3 h-3 text-yellow-400" /> Supreme Quality (Audio + Video)
-                    </h4>
-                    <button 
-                      onClick={handlePremiumDownload}
-                      className="flex items-center justify-between w-full p-4 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg hover:shadow-purple-500/25 group border border-white/10"
-                    >
-                      <div className="flex items-center gap-3 font-bold text-white">
-                        <Video className="w-5 h-5" /> 
-                        1080p+ Premium Merged (MP4)
-                      </div>
-                      <Download className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-white" />
-                    </button>
-                  </div>
+                  {/* 🔥 PRO BACKEND MERGE BUTTON (Mapped to API Data) 🔥 */}
+                  {videoData.link && (videoData.link['1080p'] || videoData.link['720p']) && (
+                    <div>
+                      <h4 className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 text-xs font-bold mb-2 uppercase tracking-widest pl-1 flex items-center gap-1">
+                        <Zap className="w-3 h-3 text-yellow-400" /> Supreme Quality (Audio + Video)
+                      </h4>
+                      <a 
+                        href={videoData.link['1080p']?.[0] || videoData.link['720p']?.[0] || '#'}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center justify-between w-full p-4 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg hover:shadow-purple-500/25 group border border-white/10"
+                      >
+                        <div className="flex items-center gap-3 font-bold text-white">
+                          <Video className="w-5 h-5" /> 
+                          {videoData.link['1080p'] ? '1080p+' : '720p'} Premium Merged (MP4)
+                        </div>
+                        <Download className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-white" />
+                      </a>
+                    </div>
+                  )}
 
-                  {/* Standard Muxed (Low Quality Fallbacks) */}
-                  <div>
-                    <h4 className="text-gray-400 text-xs font-bold mb-2 uppercase tracking-widest pl-1">Standard (Low Res)</h4>
-                    <div className="flex flex-col gap-2">
-                      {videoData.formats?.slice(0, 1).map((f: any, idx: number) => (
-                        <a key={`mux-${idx}`} href={f.url} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group">
+                  {/* Standard Direct Link (360p) */}
+                  {videoData.link && videoData.link['360p'] && (
+                    <div>
+                      <h4 className="text-gray-400 text-xs font-bold mb-2 uppercase tracking-widest pl-1">Standard (Low Res)</h4>
+                      <div className="flex flex-col gap-2">
+                        <a href={videoData.link['360p'][0]} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group">
                           <div className="flex items-center gap-2 font-medium text-gray-300">
                             <Video className="w-4 h-4 text-gray-400" /> 
-                            MP4 {f.width ? `${f.width === 640 ? '360p' : f.width === 1280 ? '720p' : f.width}` : 'Ready'}
+                            MP4 360p
                           </div>
                           <Download className="w-4 h-4 group-hover:-translate-y-1 transition-transform text-gray-400" />
                         </a>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Audio Only */}
-                  <div>
-                    <h4 className="text-gray-400 text-xs font-bold mb-2 uppercase tracking-widest pl-1">Audio Extract</h4>
-                    <a href={videoData.adaptiveFormats?.find((f: any) => f.mimeType?.includes('audio'))?.url || '#'} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all group">
-                      <div className="flex items-center gap-3 font-medium text-gray-200">
-                        <Music className="w-5 h-5 text-green-400" /> Original Audio (MP3/M4A)
                       </div>
-                      <Download className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-gray-400" />
-                    </a>
-                  </div>
+                    </div>
+                  )}
+
+                  {/* Audio Direct Link (MP3/M4A) */}
+                  {videoData.link && (videoData.link['mp3'] || videoData.link['m4a']) && (
+                    <div>
+                      <h4 className="text-gray-400 text-xs font-bold mb-2 uppercase tracking-widest pl-1">Audio Extract</h4>
+                      <a href={videoData.link['mp3']?.[0] || videoData.link['m4a']?.[0] || '#'} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all group">
+                        <div className="flex items-center gap-3 font-medium text-gray-200">
+                          <Music className="w-5 h-5 text-green-400" /> Original Audio (MP3/M4A)
+                        </div>
+                        <Download className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-gray-400" />
+                      </a>
+                    </div>
+                  )}
 
                 </div>
               </div>
