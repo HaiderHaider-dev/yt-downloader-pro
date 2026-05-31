@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Play, Sparkles, Loader2, Download, Music, Video } from 'lucide-react';
+import { Search, Play, Sparkles, Loader2, Download, Music, Video, Zap } from 'lucide-react';
 
 export default function Home() {
   const [url, setUrl] = useState('');
@@ -10,6 +10,7 @@ export default function Home() {
   const [videoData, setVideoData] = useState<any>(null);
   const [error, setError] = useState('');
 
+  // Yeh function metadata (thumbnail/title) laane ke liye hai
   const handleExtract = async () => {
     if (!url) return;
     setIsLoading(true);
@@ -29,9 +30,7 @@ export default function Home() {
         throw new Error(data.error || 'Oops! Kuch masla ho gaya. Link check karo.');
       }
 
-      // 🔥 YEH LINE ADD KARNI HAI 🔥
       console.log("X-RAY VISION - API KA ASLI DATA:", data);
-
       setVideoData(data);
     } catch (err: any) {
       setError(err.message);
@@ -39,6 +38,20 @@ export default function Home() {
       setIsLoading(false);
     }
   };
+
+// 🔥 YEH HAI NAYA FUNCTION: Railway Node.js Backend Se Connect Karne Ke Liye 🔥
+const handlePremiumDownload = () => {
+  if (!url) {
+    setError("Please paste a link first!");
+    return;
+  }
+  
+  // Environment variable se tera Railway ka link utha raha hai (fallback localhost hai)
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  
+  // Direct tumhare Railway Server par stream request bhej raha hai
+  window.location.href = `${backendUrl}/api/download?url=${encodeURIComponent(url)}`;
+};
 
   return (
     <main className="relative min-h-screen w-full overflow-y-auto bg-[#0a0a0a] text-white flex flex-col items-center p-4 py-20">
@@ -104,8 +117,12 @@ export default function Home() {
               initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.6, type: "spring" }}
               className="w-full mt-8 p-6 bg-white/5 border border-white/10 backdrop-blur-2xl rounded-3xl text-left flex flex-col md:flex-row gap-6 shadow-2xl"
             >
-              <div className="w-full md:w-1/2 rounded-2xl overflow-hidden border border-white/10 shadow-lg">
-              <img src={videoData.id ? `https://i.ytimg.com/vi/${videoData.id}/hqdefault.jpg` : 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=1000'} alt="Video Thumbnail" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+              <div className="w-full md:w-1/2 rounded-2xl overflow-hidden border border-white/10 shadow-lg relative group">
+                <img src={videoData.id ? `https://i.ytimg.com/vi/${videoData.id}/maxresdefault.jpg` : 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=1000'} 
+                     onError={(e) => { (e.target as HTMLImageElement).src = `https://i.ytimg.com/vi/${videoData.id}/hqdefault.jpg`; }}
+                     alt="Video Thumbnail" 
+                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" 
+                />
               </div>
               <div className="w-full md:w-1/2 flex flex-col justify-between">
                 <div>
@@ -115,34 +132,32 @@ export default function Home() {
                 
                 <div className="w-full mt-6 space-y-5">
                   
-                  {/* Standard Muxed (Video + Audio) */}
+                  {/* 🔥 NEW: PRO BACKEND MERGE BUTTON 🔥 */}
                   <div>
-                    <h4 className="text-gray-400 text-xs font-bold mb-2 uppercase tracking-widest pl-1">Standard (With Audio)</h4>
-                    <div className="flex flex-col gap-2">
-                      {videoData.formats?.map((f: any, idx: number) => (
-                        <a key={`mux-${idx}`} href={f.url} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full p-4 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 transition-all shadow-lg hover:shadow-red-500/25 group">
-                          <div className="flex items-center gap-3 font-bold">
-                            <Video className="w-5 h-5" /> 
-                            MP4 {f.width ? `${f.width === 640 ? '360p' : f.width === 1280 ? '720p' : f.width}` : 'Ready'}
-                          </div>
-                          <Download className="w-5 h-5 group-hover:-translate-y-1 transition-transform" />
-                        </a>
-                      ))}
-                    </div>
+                    <h4 className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 text-xs font-bold mb-2 uppercase tracking-widest pl-1 flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-yellow-400" /> Supreme Quality (Audio + Video)
+                    </h4>
+                    <button 
+                      onClick={handlePremiumDownload}
+                      className="flex items-center justify-between w-full p-4 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg hover:shadow-purple-500/25 group border border-white/10"
+                    >
+                      <div className="flex items-center gap-3 font-bold text-white">
+                        <Video className="w-5 h-5" /> 
+                        1080p+ Premium Merged (MP4)
+                      </div>
+                      <Download className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-white" />
+                    </button>
                   </div>
 
-                  {/* High Quality Video Only (Adaptive DASH) */}
+                  {/* Standard Muxed (Low Quality Fallbacks) */}
                   <div>
-                    <h4 className="text-gray-400 text-xs font-bold mb-2 uppercase tracking-widest pl-1">Pro Resolutions (Video Only / No Audio)</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {videoData.adaptiveFormats
-                        ?.filter((f: any) => f.mimeType?.includes('video/mp4') && f.width >= 1280) // Sirf 720p aur us se upar
-                        .filter((v:any, i:number, a:any) => a.findIndex((t:any)=>(t.width === v.width)) === i) // Ek resolution ka ek hi button aaye
-                        .map((f: any, idx: number) => (
-                        <a key={`hd-${idx}`} href={f.url} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group">
-                          <div className="flex items-center gap-2 font-medium text-gray-200">
-                            <Video className="w-4 h-4 text-blue-400" /> 
-                            {f.width === 1920 ? '1080p HD' : f.width === 1280 ? '720p HD' : f.width === 2560 ? '1440p 2K' : f.width === 3840 ? '2160p 4K' : f.width}
+                    <h4 className="text-gray-400 text-xs font-bold mb-2 uppercase tracking-widest pl-1">Standard (Low Res)</h4>
+                    <div className="flex flex-col gap-2">
+                      {videoData.formats?.slice(0, 1).map((f: any, idx: number) => (
+                        <a key={`mux-${idx}`} href={f.url} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group">
+                          <div className="flex items-center gap-2 font-medium text-gray-300">
+                            <Video className="w-4 h-4 text-gray-400" /> 
+                            MP4 {f.width ? `${f.width === 640 ? '360p' : f.width === 1280 ? '720p' : f.width}` : 'Ready'}
                           </div>
                           <Download className="w-4 h-4 group-hover:-translate-y-1 transition-transform text-gray-400" />
                         </a>
@@ -155,7 +170,7 @@ export default function Home() {
                     <h4 className="text-gray-400 text-xs font-bold mb-2 uppercase tracking-widest pl-1">Audio Extract</h4>
                     <a href={videoData.adaptiveFormats?.find((f: any) => f.mimeType?.includes('audio'))?.url || '#'} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all group">
                       <div className="flex items-center gap-3 font-medium text-gray-200">
-                        <Music className="w-5 h-5 text-purple-400" /> Original Audio (MP3/M4A)
+                        <Music className="w-5 h-5 text-green-400" /> Original Audio (MP3/M4A)
                       </div>
                       <Download className="w-5 h-5 group-hover:-translate-y-1 transition-transform text-gray-400" />
                     </a>
