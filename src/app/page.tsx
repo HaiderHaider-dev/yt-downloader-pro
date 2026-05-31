@@ -39,17 +39,16 @@ export default function Home() {
     }
   };
 
-// 🔥 YEH HAI NAYA FUNCTION: Railway Node.js Backend Se Connect Karne Ke Liye 🔥
+// 🔥 THE ULTIMATE FIX 🔥
 const handlePremiumDownload = () => {
   if (!url) {
     setError("Please paste a link first!");
     return;
   }
   
-  // Environment variable se tera Railway ka link utha raha hai (fallback localhost hai)
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  // Agar env variable nahi mila, toh direct Railway link uthayega (localhost ka masla hi khatam!)
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yt-downloader-backend-production-195b.up.railway.app';
   
-  // Direct tumhare Railway Server par stream request bhej raha hai
   window.location.href = `${backendUrl}/api/download?url=${encodeURIComponent(url)}`;
 };
 
